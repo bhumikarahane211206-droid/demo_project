@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CampusRide — Student Travel Booking</title>
+  <meta name="description" content="CampusRide — Safe, affordable travel booking for college students." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#">CampusRide</a>
+      <nav class="nav">
+        <a href="#features">Features</a>
+        <a href="#routes">Popular Routes</a>
+        <a href="#contact">Contact</a>
+        <button id="walletBtn" class="btn btn-outline">Wallet</button>
+        <button id="dashboardBtn" class="btn btn-outline">Dashboard</button>
+        <button id="loginBtn" class="btn btn-outline">Login</button>
+        <button id="registerBtn" class="btn btn-primary">Register</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy glass">
+          <h1>Book Your Ride to College</h1>
+          <p class="lead">Safe, affordable daily commute for college students. Buses and cabs on-demand.</p>
+          <div class="hero-actions">
+            <button id="searchRideBtn" class="btn btn-primary">Search Ride</button>
+            <button id="quickRegisterBtn" class="btn btn-outline">Register</button>
+          </div>
+          <div class="popular">
+            <h4>Popular Routes</h4>
+            <div class="chips">
+              <span class="chip">Home ↔ College A</span>
+              <span class="chip">Downtown ↔ Campus</span>
+              <span class="chip">Northside ↔ College B</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="https://images.unsplash.com/photo-1511268553324-6f11f717b7d6?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=6c0b3c0b1a4d5a6d7a6e3f8b9f1f6c2d" alt="students travelling illustration">
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section container">
+      <h2 class="section-title">Why CampusRide</h2>
+      <div class="grid cards">
+        <div class="card glass">
+          <i class="fa-solid fa-shield-halved fa-2x"></i>
+          <h3>Safe Commute</h3>
+          <p>Verified drivers, route tracking and SOS support for peace of mind.</p>
+        </div>
+        <div class="card glass">
+          <i class="fa-solid fa-wallet fa-2x"></i>
+          <h3>Student Wallet</h3>
+          <p>Manage balance, coupons and student discounts.</p>
+        </div>
+        <div class="card glass">
+          <i class="fa-solid fa-clock fa-2x"></i>
+          <h3>On Time</h3>
+          <p>Live seat availability and punctual schedules.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="routes" class="section container">
+      <h2 class="section-title">Search Rides</h2>
+      <div class="search-panel glass">
+        <div class="row">
+          <input id="pickup" placeholder="Pickup Location" />
+          <input id="drop" placeholder="Drop Location" />
+        </div>
+        <div class="row">
+          <input id="college" placeholder="College Name" />
+          <input id="date" type="date" />
+        </div>
+        <div class="row">
+          <select id="vehicleType"><option value="any">Any</option><option value="bus">Bus</option><option value="cab">Cab</option></select>
+          <input id="seats" type="number" min="1" max="6" placeholder="Seats" />
+        </div>
+        <div class="row actions">
+          <button id="doSearch" class="btn btn-primary">Search</button>
+        </div>
+      </div>
+      <div id="results" class="results grid"></div>
+    </section>
+
+    <section id="testimonials" class="section container">
+      <h2 class="section-title">Testimonials</h2>
+      <div class="grid cards">
+        <div class="card glass">“CampusRide made my daily commute so easy.” — Priya</div>
+        <div class="card glass">“Affordable and safe.” — Ahmed</div>
+        <div class="card glass">“Booking is a breeze.” — Sam</div>
+      </div>
+    </section>
+
+    <section id="faq" class="section container">
+      <h2 class="section-title">FAQ</h2>
+      <details><summary>How do I register?</summary><p>Use the Register button and verify your student details.</p></details>
+      <details><summary>What payment methods are supported?</summary><p>UPI, Cards, Netbanking and Wallet (demo).</p></details>
+    </section>
+
+    <section id="contact" class="section container contact">
+      <h2 class="section-title">Contact Us</h2>
+      <form id="contactForm" class="contact-form glass">
+        <input placeholder="Name" required />
+        <input placeholder="Email" required />
+        <input placeholder="Subject" />
+        <textarea placeholder="Message" rows="4"></textarea>
+        <div class="row actions"><button class="btn btn-primary">Send</button></div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>© <span id="year"></span> CampusRide</div>
+      <div class="footer-links">
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+        <a href="#">Privacy</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modals -->
+  <div id="authModal" class="modal">
+    <div class="modal-content glass">
+      <button class="modal-close">✕</button>
+      <h3 id="modalTitle">Register</h3>
+      <form id="authForm">
+        <input id="fullName" placeholder="Full Name" required />
+        <input id="collegeName" placeholder="College Name" required />
+        <input id="studentId" placeholder="Student ID" />
+        <input id="email" type="email" placeholder="Email" required />
+        <input id="mobile" placeholder="Mobile Number" />
+        <input id="password" type="password" placeholder="Password" required />
+        <input id="confirmPassword" type="password" placeholder="Confirm Password" required />
+        <div class="row actions"><button type="submit" class="btn btn-primary">Register</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="paymentModal" class="modal">
+    <div class="modal-content glass">
+      <button class="modal-close">✕</button>
+      <h3>Payment</h3>
+      <form id="paymentForm" class="payment-form">
+        <div class="muted">Amount: <strong id="payAmount">₹0</strong></div>
+        <div class="coupon-row">
+          <input id="paymentCoupon" placeholder="Coupon code (optional)" />
+          <button id="applyCouponBtn" type="button" class="btn btn-outline">Apply</button>
+          <div id="couponMessage" class="muted"></div>
+        </div>
+        <div class="pay-methods">
+          <label><input type="radio" name="pmethod" value="upi" checked/> UPI</label>
+          <label><input type="radio" name="pmethod" value="card"/> Credit/Debit Card</label>
+          <label><input type="radio" name="pmethod" value="netbank"/> Netbanking</label>
+          <label><input type="radio" name="pmethod" value="wallet"/> Wallet</label>
+        </div>
+        <div id="pmethodFields">
+          <input id="upiId" placeholder="UPI ID (example@bank)" />
+          <div id="cardFields" style="display:none">
+            <input id="cardNumber" placeholder="Card Number" maxlength="19" />
+            <div style="display:flex;gap:.5rem"><input id="cardExp" placeholder="MM/YY" /><input id="cardCvv" placeholder="CVV" maxlength="4" /></div>
+          </div>
+        </div>
+        <div class="row actions"><button type="submit" class="btn btn-primary">Pay Now</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="walletModal" class="modal">
+    <div class="modal-content glass">
+      <button class="modal-close">✕</button>
+      <h3>Wallet</h3>
+      <div>Balance: <strong id="walletBalance">₹0</strong></div>
+      <form id="addFundsForm">
+        <input id="addAmount" type="number" min="10" placeholder="Amount to add (₹)" />
+        <div class="row actions"><button class="btn btn-primary">Add Funds</button></div>
+      </form>
+      <h4>Available Coupons</h4>
+      <div id="couponList" class="grid cards"></div>
+      <div style="margin-top:.6rem"><input id="newCouponCode" placeholder="Create coupon code (demo)" /><button id="createCouponBtn" class="btn btn-outline">Create</button></div>
+    </div>
+  </div>
+
+  <div id="dashboardModal" class="modal">
+    <div class="modal-content glass">
+      <button class="modal-close">✕</button>
+      <h3>Student Dashboard</h3>
+      <div class="grid cards dashboard-cards">
+        <div class="card glass">
+          <h4>Upcoming Rides</h4>
+          <div id="dashUpcoming">0</div>
+        </div>
+        <div class="card glass">
+          <h4>Total Bookings</h4>
+          <div id="dashTotalBookings">0</div>
+        </div>
+        <div class="card glass">
+          <h4>Wallet Balance</h4>
+          <div id="dashWallet">₹0</div>
+        </div>
+        <div class="card glass">
+          <h4>Notifications</h4>
+          <div id="dashNotifs">0</div>
+        </div>
+      </div>
+
+      <section style="margin-top:1rem">
+        <h4>Transaction History</h4>
+        <div class="tx-filters" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;align-items:center">
+          <div class="tx-presets" style="display:flex;gap:.4rem;align-items:center">
+            <button id="preset7" class="btn btn-outline">Last 7 days</button>
+            <button id="presetThisMonth" class="btn btn-outline">This month</button>
+            <button id="presetLastMonth" class="btn btn-outline">Last month</button>
+            <button id="presetAll" class="btn btn-outline">All time</button>
+          </div>
+          <select id="txFilterType"><option value="all">All</option><option value="topup">Top-up</option><option value="payment">Payment</option></select>
+          <input id="txFilterFrom" type="date" />
+          <input id="txFilterTo" type="date" />
+          <input id="txFilterSearch" placeholder="Search amount or booking" />
+          <button id="txFilterClear" class="btn btn-outline">Clear</button>
+        </div>
+        <div id="transactionList" class="cards"></div>
+        <div class="tx-pagination" style="display:flex;align-items:center;gap:.6rem;margin-top:.6rem">
+          <button id="txPrevBtn" class="btn btn-outline">Prev</button>
+          <div id="txPageInfo" class="muted">Page 1</div>
+          <button id="txNextBtn" class="btn btn-outline">Next</button>
+          <label class="muted">Per page:</label>
+          <select id="txPerPageSelect">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+          </select>
+          <button id="txExportBtn" class="btn btn-outline">Export CSV</button>
+          <button id="txExportPDFBtn" class="btn btn-outline">Export PDF</button>
+          <div class="tx-columns" style="position:relative">
+            <button id="txColumnsToggle" class="btn btn-outline">Columns</button>
+            <div id="txColumnSelector" style="display:none;position:absolute;right:0;top:36px;background:white;padding:.6rem;border-radius:8px;box-shadow:0 12px 30px rgba(15,23,42,.08);z-index:40">
+              <label><input type="checkbox" data-col="id" checked/> Transaction ID</label><br/>
+              <label><input type="checkbox" data-col="type" checked/> Type</label><br/>
+              <label><input type="checkbox" data-col="amount" checked/> Amount</label><br/>
+              <label><input type="checkbox" data-col="method" checked/> Method</label><br/>
+              <label><input type="checkbox" data-col="date" checked/> Date</label><br/>
+              <label><input type="checkbox" data-col="balance" checked/> Balance</label><br/>
+              <label><input type="checkbox" data-col="bookingId" checked/> Booking ID</label>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="txDetailModal" class="modal">
+    <div class="modal-content glass">
+      <button class="modal-close">✕</button>
+      <h3>Transaction Details</h3>
+      <div id="txDetailArea"></div>
+      <div class="row actions"><button id="printReceiptBtn" class="btn btn-primary">Download / Print Receipt</button></div>
+    </div>
+  </div>
+
+  <div id="ticketModal" class="modal">
+    <div class="modal-content glass ticket-content">
+      <button class="modal-close">✕</button>
+      <div id="ticketArea"></div>
+      <div class="row actions"><button id="printTicket" class="btn btn-primary">Download / Print Ticket</button></div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
