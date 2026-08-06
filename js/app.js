@@ -8,8 +8,11 @@
     coupons: JSON.parse(localStorage.getItem('cr_coupons')||'null') || [],
     transactions: JSON.parse(localStorage.getItem('cr_transactions')||'[]'),
     txPage: 1,
-    txPerPage: 5
+    txPerPage: 5,
+    selectedTxColumns: null
   }
+
+  const DEFAULT_TX_COLUMNS = ['id','type','amount','method','date','balance','bookingId'];
 
   // sample rides
   state.rides = [
@@ -36,6 +39,8 @@
     $('#year').textContent = new Date().getFullYear();
     bindUI();
     renderResults(state.rides);
+    const cu = JSON.parse(localStorage.getItem('cr_currentUser')||'null');
+    if(cu) loadUserSettings(cu.id);
   }
 
   function bindUI(){
@@ -75,6 +80,10 @@
       // per-page and export
       $('#txPerPageSelect')?.addEventListener('change', (e)=>{ state.txPerPage = parseInt(e.target.value)||5; state.txPage=1; renderTransactionList(); });
       $('#txExportBtn')?.addEventListener('click', ()=>{ exportTransactionsCSV(); });
+      $('#txExportPDFBtn')?.addEventListener('click', ()=>{ exportTransactionsPDF(); });
+      // columns toggle and checkboxes
+      $('#txColumnsToggle')?.addEventListener('click', ()=>{ const el = $('#txColumnSelector'); if(el) el.style.display = (el.style.display==='none'?'block':'none'); });
+      $$('#txColumnSelector input[type="checkbox"]').forEach(cb=>cb.addEventListener('change', onColumnToggle));
   }
 
   function openAuth(mode){
@@ -110,6 +119,7 @@
     alert('Registered successfully. You are logged in (demo).');
     closeModals();
     localStorage.setItem('cr_currentUser', JSON.stringify(u));
+    loadUserSettings(u.id);
     renderDashboard();
     updateWalletUI();
   }
@@ -225,6 +235,37 @@
     localStorage.setItem('cr_transactions', JSON.stringify(state.transactions));
     renderDashboard();
     alert('Added ₹'+amt+' to wallet (demo)');
+  }
+
+  function loadUserSettings(userId){
+    const all = JSON.parse(localStorage.getItem('cr_user_settings')||'{}');
+    const s = all[userId] || {};
+    state.txPerPage = s.txPerPage || state.txPerPage || 5;
+    state.selectedTxColumns = s.selectedTxColumns || DEFAULT_TX_COLUMNS.slice();
+    if($('#txPerPageSelect')) $('#txPerPageSelect').value = String(state.txPerPage);
+    // apply column checkboxes
+    $$('#txColumnSelector input[type="checkbox"]')?.forEach(cb=>{
+      cb.checked = state.selectedTxColumns.includes(cb.dataset.col);
+    });
+  }
+
+  function saveUserSettings(userId){
+    if(!userId) return;
+    const all = JSON.parse(localStorage.getItem('cr_user_settings')||'{}');
+    all[userId] = all[userId] || {};
+    all[userId].txPerPage = state.txPerPage;
+    all[userId].selectedTxColumns = state.selectedTxColumns || DEFAULT_TX_COLUMNS.slice();
+    localStorage.setItem('cr_user_settings', JSON.stringify(all));
+  }
+
+  function onColumnToggle(e){
+    const cb = e.target;
+    const col = cb.dataset.col;
+    if(!state.selectedTxColumns) state.selectedTxColumns = DEFAULT_TX_COLUMNS.slice();
+    if(cb.checked){ if(!state.selectedTxColumns.includes(col)) state.selectedTxColumns.push(col); }
+    else { state.selectedTxColumns = state.selectedTxColumns.filter(x=>x!==col); }
+    const user = JSON.parse(localStorage.getItem('cr_currentUser')||'null');
+    if(user) saveUserSettings(user.id);
   }
 
   function renderCoupons(){
@@ -438,6 +479,9 @@
     $('#txPageInfo').textContent = `Page ${state.txPage} / ${totalPages}`;
     $('#txPrevBtn').disabled = state.txPage<=1;
     $('#txNextBtn').disabled = state.txPage>=totalPages;
+    // ensure settings saved for current user
+    const user = JSON.parse(localStorage.getItem('cr_currentUser')||'null');
+    if(user) saveUserSettings(user.id);
   }
 
   function getFilteredTransactions(){
@@ -459,15 +503,58 @@
   function exportTransactionsCSV(){
     const rows = getFilteredTransactions();
     if(rows.length===0) return alert('No transactions to export');
-    const headers = ['Transaction ID','Type','Amount','Method','Date','Balance','Booking ID'];
+    const cols = state.selectedTxColumns || DEFAULT_TX_COLUMNS.slice();
+    const headersMap = { id:'Transaction ID', type:'Type', amount:'Amount', method:'Method', date:'Date', balance:'Balance', bookingId:'Booking ID' };
+    const headers = cols.map(c=>headersMap[c]||c);
     const csv = [headers.join(',')];
     rows.forEach(r=>{
-      const line = [r.id, r.type, r.amount, (r.method||''), new Date(r.date).toISOString(), (r.balance||''), (r.bookingId||'')];
+      const line = cols.map(c=>{
+        if(c==='date') return new Date(r.date).toISOString();
+        return (r[c]===undefined||r[c]===null)?'':r[c];
+      });
       csv.push(line.map(v=>`"${(''+v).replace(/"/g,'""')}"`).join(','));
     });
     const blob = new Blob([csv.join('\n')], {type:'text/csv;charset=utf-8;'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'campusride-transactions.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+
+  async function exportTransactionsPDF(){
+    const rows = getFilteredTransactions();
+    if(rows.length===0) return alert('No transactions to export');
+    const cols = state.selectedTxColumns || DEFAULT_TX_COLUMNS.slice();
+    // build temp table
+    const table = document.createElement('table'); table.style.borderCollapse='collapse'; table.style.width='100%'; table.style.fontFamily='Poppins,Arial';
+    const thead = document.createElement('thead'); const thr = document.createElement('tr');
+    const headersMap = { id:'Transaction ID', type:'Type', amount:'Amount', method:'Method', date:'Date', balance:'Balance', bookingId:'Booking ID' };
+    cols.forEach(c=>{ const th = document.createElement('th'); th.style.border='1px solid #ddd'; th.style.padding='6px'; th.style.background='#f8fafc'; th.textContent = headersMap[c]||c; thr.appendChild(th); });
+    thead.appendChild(thr); table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    rows.forEach(r=>{
+      const tr = document.createElement('tr');
+      cols.forEach(c=>{
+        const td = document.createElement('td'); td.style.border='1px solid #eee'; td.style.padding='6px';
+        td.textContent = (c==='date')? new Date(r.date).toLocaleString() : (r[c]===undefined||r[c]===null)?'':r[c];
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    const wrapper = document.createElement('div'); wrapper.style.padding='12px'; wrapper.style.background='white'; wrapper.appendChild(table); document.body.appendChild(wrapper);
+    try{
+      const canvas = await html2canvas(wrapper, {scale:2});
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf || window.jsPDF || {};
+      const pdf = new jsPDF('p','mm','a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('campusride-transactions.pdf');
+    }catch(err){
+      alert('PDF export failed: '+err.message);
+    }
+    wrapper.remove();
   }
 
   function applyDatePreset(preset){
@@ -505,6 +592,8 @@
 
   function openDashboard(){
     const modal = $('#dashboardModal');
+    const user = JSON.parse(localStorage.getItem('cr_currentUser')||'null');
+    if(user) loadUserSettings(user.id);
     modal.classList.add('show');
     renderDashboard();
   }
